@@ -3,6 +3,9 @@
    ---------------------------------------------------------
    - Card title and step number remain fixed.
    - Only table/conversion rows scroll (.conversion-scroll).
+   - Fixed height 125px for conversion scroll area in all steps.
+   - Compact 6px pill scrollbar thumb with full-height track.
+   - Horizontal scrollbar removed completely.
    - Purple filled step badges (#9333EA) with white text.
    - Light lavender theme for output card (card 05).
    - Applies to both toBase64 and fromBase64 visualizations.
@@ -160,12 +163,13 @@ div.base64-step.output-step #base64-result {
     box-shadow: 0 2px 8px rgba(124, 92, 252, 0.08) !important;
 }
 
+/* Conversion Scroll Container - Fixed 125px Height for All Steps */
 .conversion-scroll {
     width: 100% !important;
-    flex: 1 !important;
-    max-height: 130px !important;
+    height: 125px !important;
+    max-height: 125px !important;
     overflow-y: auto !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     box-sizing: border-box !important;
 }
 
@@ -178,7 +182,7 @@ div.base64-step.output-step #base64-result {
 .conversion-scroll th,
 .conversion-scroll td {
     white-space: nowrap !important;
-    padding: 5px 8px !important;
+    padding: 5px 6px !important;
     font-size: 11px !important;
     font-family: 'JetBrains Mono', monospace !important;
     border-bottom: 1px solid #F0F0F8 !important;
@@ -194,20 +198,29 @@ div.base64-step.output-step #base64-result {
     z-index: 1 !important;
 }
 
+/* Small 6px Pill Scrollbar Thumb with Track Line (Matches Illustration) */
 .conversion-scroll::-webkit-scrollbar {
-    width: 4px !important;
-    height: 4px !important;
+    width: 6px !important;
+    height: 0px !important;
 }
 
 .conversion-scroll::-webkit-scrollbar-track {
-    background: transparent !important;
+    background: #F4F4FB !important;
+    border-radius: 10px !important;
 }
 
 .conversion-scroll::-webkit-scrollbar-thumb {
     background: #C4B5FD !important;
     border-radius: 10px !important;
+    min-height: 25px !important;
 }
 
 .conversion-scroll::-webkit-scrollbar-thumb:hover {
     background: #7C5CFC !important;
+}
+
+/* Hide horizontal scrollbar below tables */
+.conversion-scroll::-webkit-scrollbar:horizontal {
+    display: none !important;
+    height: 0px !important;
 }

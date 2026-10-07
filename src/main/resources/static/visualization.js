@@ -192,7 +192,7 @@
             step4Rows.push(["Padding", "=", "="]);
         }
         const step4 = createStep(4, "BASE64 MAPPING");
-        step4.appendChild(createTable(["6-bit", "Index", "Base64 Char"], step4Rows));
+        step4.appendChild(createTable(["6-bit", "Index", "Char"], step4Rows));
         series.appendChild(step4);
         series.appendChild(createArrow());
 
