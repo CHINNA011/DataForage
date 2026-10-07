@@ -5,20 +5,23 @@ const OPERATIONS = {
     urlEncode:  { label: "URL encode",  icon: "\uD83D\uDD17", group: "Web",      tone: "blue",   blurb: "Make text safe to put in a web address." },
     urlDecode:  { label: "URL decode",  icon: "\uD83D\uDD13", group: "Web",      tone: "blue",   blurb: "Read web-address text as normal text again." },
     rot13:      { label: "ROT13",       icon: "\uD83D\uDD24", group: "Cipher",   tone: "pink",   blurb: "Swap every letter with the one 13 places later." },
-    sha256:     { label: "SHA-256",     icon: "\uD83E\uDDEC", group: "Hashing",  tone: "orange", blurb: "Turn any text into a unique 64-character fingerprint." }
+    sha256:     { label: "SHA-256",     icon: "\uD83E\uDEC2", group: "Hashing",  tone: "orange", blurb: "Turn any text into a unique 64-character fingerprint." }
 };
 
 const availableOperations = Object.keys(OPERATIONS);
 
 // Ready-made recipes for people who do not know where to start
 const EXAMPLES = [
-    { icon: "\uD83E\uDDEC", title: "Fingerprint, then Base64, then ROT13", input: "hello", steps: ["sha256", "toBase64", "rot13"] },
+    { icon: "\uD83E\uDEC2", title: "Fingerprint, then Base64, then ROT13", input: "hello", steps: ["sha256", "toBase64", "rot13"] },
     { icon: "\uD83D\uDD17", title: "Make text web-safe", input: "fish & chips?", steps: ["urlEncode"] },
     { icon: "\uD83D\uDCE6", title: "Hide text with Base64", input: "Hello, DataForge!", steps: ["toBase64"] },
     { icon: "\uD83D\uDD24", title: "Secret letters", input: "Meet me at noon", steps: ["rot13"] }
 ];
 
 let recipe = [];
+
+// Make the current recipe available to visualization.js
+window.recipe = recipe;
 
 function renderOperationList() {
     const container = document.getElementById("operation-list");
@@ -39,10 +42,13 @@ function renderOperationList() {
 
         const text = document.createElement("span");
         text.className = "op-text";
+
         const name = document.createElement("b");
         name.textContent = op.label;
+
         const blurb = document.createElement("small");
         blurb.textContent = op.blurb;
+
         text.append(name, blurb);
 
         const tag = document.createElement("span");
@@ -74,18 +80,31 @@ function renderExamples() {
 
 function loadExample(example) {
     recipe = example.steps.map((name) => ({ name: name, params: {} }));
+
+    // Keep visualization.js synchronized with the new recipe array.
+    window.recipe = recipe;
+
     document.getElementById("input-box").value = example.input;
+
     renderRecipeList(false);
     bake();
 }
 
 function addToRecipe(opName) {
     recipe.push({ name: opName, params: {} });
+
+    // Keep visualization.js synchronized.
+    window.recipe = recipe;
+
     renderRecipeList(true);
 }
 
 function removeFromRecipe(index) {
     recipe.splice(index, 1);
+
+    // Keep visualization.js synchronized.
+    window.recipe = recipe;
+
     renderRecipeList(true);
 }
 
@@ -98,16 +117,35 @@ function renderRecipeList(resetLesson) {
         document.getElementById("explanation").hidden = true;
     }
 
+    const visualizeButton = document.getElementById("visualize-button");
+
     if (recipe.length === 0) {
         const empty = document.createElement("div");
         empty.className = "recipe-empty";
         empty.textContent = "Your recipe is empty. Pick an operation on the left, or try an example above.";
         container.appendChild(empty);
+
+        // Hide visualization button when there is no recipe.
+        if (visualizeButton) {
+            visualizeButton.style.display = "none";
+        }
+
+        // Hide old visualization when recipe becomes empty.
+        const visualizationBox = document.getElementById("base64-visualization");
+
+        if (visualizationBox) {
+            visualizationBox.style.display = "none";
+        }
+
         return;
     }
 
     recipe.forEach((step, index) => {
-        const op = OPERATIONS[step.name] || { label: step.name, icon: "\u2699\uFE0F", tone: "blue" };
+        const op = OPERATIONS[step.name] || {
+            label: step.name,
+            icon: "\u2699\uFE0F",
+            tone: "blue"
+        };
 
         const row = document.createElement("div");
         row.className = "recipe-step tone-" + op.tone;
@@ -134,6 +172,11 @@ function renderRecipeList(resetLesson) {
         row.append(number, icon, label, removeButton);
         container.appendChild(row);
     });
+
+    // Show visualization button when a recipe exists.
+    if (visualizeButton) {
+        visualizeButton.style.display = "block";
+    }
 }
 
 async function bake() {
@@ -148,24 +191,33 @@ async function bake() {
         const response = await fetch("/api/bake", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ input: input, recipe: recipe })
+            body: JSON.stringify({
+                input: input,
+                recipe: recipe
+            })
         });
 
         if (!response.ok) {
             outputBox.value = "Something went wrong on the server (" + response.status + "). "
                 + "Check that the input suits the recipe, for example From Base64 needs real Base64 text.";
+
             document.getElementById("explanation").hidden = true;
             return;
         }
 
         const data = await response.json();
+
+        // The server remains the single source of truth for the real result.
         outputBox.value = data.output;
 
-        // Show the plain-English story and lessons for every step of the recipe
+        // Show the plain-English story and lessons for every step of the recipe.
         renderExplanation(data.steps);
 
         if (recipe.length > 0) {
-            document.getElementById("explanation").scrollIntoView({ behavior: "smooth", block: "start" });
+            document.getElementById("explanation").scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
         }
     } catch (error) {
         outputBox.value = "Could not reach the server. Is the app running at http://localhost:8080 ?";
@@ -175,7 +227,31 @@ async function bake() {
     }
 }
 
+// Main Bake button.
 document.getElementById("bake-button").onclick = bake;
+
+// Visualization button.
+// It first runs the real server-side operation through bake(),
+// then asks visualization.js to explain the selected operation.
+const visualizeButton = document.getElementById("visualize-button");
+
+if (visualizeButton) {
+    visualizeButton.onclick = async () => {
+        await bake();
+
+        const selectedOperation =
+            recipe.length > 0
+                ? recipe[recipe.length - 1].name
+                : null;
+
+        if (
+            selectedOperation &&
+            typeof window.showOperationVisualization === "function"
+        ) {
+            window.showOperationVisualization(selectedOperation);
+        }
+    };
+}
 
 renderOperationList();
 renderExamples();

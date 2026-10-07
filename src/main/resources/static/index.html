@@ -7,7 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="visualization.css?v=6">
 </head>
 <body>
 
@@ -69,6 +70,7 @@
             <textarea id="input-box" placeholder="Type or paste some text..."></textarea>
 
             <button id="bake-button" type="button">Bake it and show me how</button>
+            <button id="visualize-button" type="button" style="display: none;">Visualization</button>
 
             <label class="field-label" for="output-box">Final result</label>
             <textarea id="output-box" readonly placeholder="Your result appears here"></textarea>
@@ -108,7 +110,10 @@
 
     <footer class="footer">DataForge is a learning tool. The result is always the real one; the lessons just show how it was made.</footer>
 
+    <div id="base64-visualization"></div>
+
     <script src="Explain.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=6"></script>
+    <script src="visualization.js?v=6"></script>
 </body>
 </html>
