@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>DataForge</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="visualization.css?v=6">
 </head>
 <body>
 
@@ -19,6 +20,7 @@
         <div class="panel">
             <h2>Recipe</h2>
             <div id="recipe-list"></div>
+            <button id="visualize-button" style="display: none;">Visualization</button>
         </div>
 
         <div class="panel">
@@ -33,6 +35,9 @@
 
     </div>
 
-    <script src="script.js"></script>
+    <div id="base64-visualization"></div>
+
+    <script src="script.js?v=6"></script>
+    <script src="visualization.js?v=6"></script>
 </body>
 </html>
