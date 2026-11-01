@@ -109,14 +109,40 @@
     let timer = null;     // used by the round-by-round animation
     let simple = true;    // plain words by default; "Show the math" switches to technical
 
+    // Professional SVG icons replacing all emojis in the visualization panel
+    const EXPLAIN_ICONS = {
+        toBase64: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="12" width="14" height="2.5" rx="1.2" fill="currentColor" opacity=".55"/><rect x="3" y="7.5" width="14" height="2.5" rx="1.2" fill="currentColor" opacity=".75"/><rect x="3" y="3" width="14" height="2.5" rx="1.2" fill="currentColor"/><path d="M14.5 15.5l2.5-2.5-2.5-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        fromBase64: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="12" width="14" height="2.5" rx="1.2" fill="currentColor" opacity=".55"/><rect x="3" y="7.5" width="14" height="2.5" rx="1.2" fill="currentColor" opacity=".75"/><rect x="3" y="3" width="14" height="2.5" rx="1.2" fill="currentColor"/><path d="M5.5 15.5L3 13l2.5-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        rot13: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 10a6.5 6.5 0 0 1 6.5-6.5 6.5 6.5 0 0 1 4.6 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 10a6.5 6.5 0 0 1-6.5 6.5 6.5 6.5 0 0 1-4.6-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.5 3.5l2.5 2-2 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 16.5l-2.5-2 2-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        urlEncode: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 12.5a4 4 0 0 0 5.657 0l1.885-1.886a4 4 0 0 0-5.657-5.657l-.943.943" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.5 7.5a4 4 0 0 0-5.657 0L4.958 9.386a4 4 0 0 0 5.657 5.657l.943-.943" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        urlDecode: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 12.5a4 4 0 0 0 5.657 0l1.885-1.886a4 4 0 0 0-5.657-5.657" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2.5 2"/><path d="M12.5 7.5a4 4 0 0 0-5.657 0L4.958 9.386a4 4 0 0 0 5.657 5.657" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2.5 2"/></svg>',
+        sha256: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5C6.5 2.5 4 5.5 4 8.5s2.5 7.5 6 8.5c3.5-1 6-5.5 6-8.5s-2.5-6-6-6z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7.5 9h5M7.5 12h3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+        generic: '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        text: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 14.5l2.5-.5L14 5.5a1.4 1.4 0 0 0-2-2L3.5 12l-.5 2.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 5l2 2" stroke="currentColor" stroke-width="1.6"/></svg>',
+        result: '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>',
+        deterministic: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M4 11a7 7 0 0 1 12-4.5L18 8M18 4v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 11a7 7 0 0 1-12 4.5L4 14M4 18v-4h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        fixedSize: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><rect x="3" y="7" width="16" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 7v4M11 7v3M15 7v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        oneWay: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="11" r="1.2" fill="currentColor"/><path d="M14 9l2 2-2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        avalanche: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M3 16c3-3 6-3 9 0 3-3 6-3 7 0M4 11c3-3 6-3 9 0 3-3 5-2 6 0M6 6c3-2 5-2 8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        collision: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M11 3l7 3v5c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 11l2 2 3-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        propGeneric: '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M11 7v8M7 11h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    };
+
+    function svgNode(svgStr) {
+        const span = document.createElement("span");
+        span.className = "svg-icon-wrap";
+        span.setAttribute("aria-hidden", "true");
+        span.innerHTML = svgStr.trim();
+        return span;
+    }
     // Everyday descriptions used in the story at the top of the panel
     const PLAIN = {
-        toBase64: { icon: "\uD83D\uDCE6", title: "To Base64", text: "Rewrites your text using only 64 safe symbols (letters, digits, + and /), so it can travel through places that only understand plain text." },
-        fromBase64: { icon: "\uD83D\uDCEC", title: "From Base64", text: "Turns Base64 text back into the original text." },
-        rot13: { icon: "\uD83D\uDD24", title: "ROT13", text: "Swaps every letter with the letter 13 places further along the alphabet (a becomes n, b becomes o). Doing it twice brings the original back." },
-        urlEncode: { icon: "\uD83D\uDD17", title: "URL encode", text: "Makes text safe to put inside a web address. Characters that have a special job in addresses (like a space, & or ?) are replaced by a % and a short code." },
-        urlDecode: { icon: "\uD83D\uDD13", title: "URL decode", text: "Undoes URL encoding: every % code is turned back into the real character." },
-        sha256: { icon: "\uD83E\uDDEC", title: "SHA-256", text: "Turns text of any length into a fixed 64-character fingerprint. The same text always gives the same fingerprint, but you can never get the text back from it." }
+        toBase64: { icon: EXPLAIN_ICONS.toBase64, title: "To Base64", text: "Rewrites your text using only 64 safe symbols (letters, digits, + and /), so it can travel through places that only understand plain text." },
+        fromBase64: { icon: EXPLAIN_ICONS.fromBase64, title: "From Base64", text: "Turns Base64 text back into the original text." },
+        rot13: { icon: EXPLAIN_ICONS.rot13, title: "ROT13", text: "Swaps every letter with the letter 13 places further along the alphabet (a becomes n, b becomes o). Doing it twice brings the original back." },
+        urlEncode: { icon: EXPLAIN_ICONS.urlEncode, title: "URL encode", text: "Makes text safe to put inside a web address. Characters that have a special job in addresses (like a space, & or ?) are replaced by a % and a short code." },
+        urlDecode: { icon: EXPLAIN_ICONS.urlDecode, title: "URL decode", text: "Undoes URL encoding: every % code is turned back into the real character." },
+        sha256: { icon: EXPLAIN_ICONS.sha256, title: "SHA-256", text: "Turns text of any length into a fixed 64-character fingerprint. The same text always gives the same fingerprint, but you can never get the text back from it." }
     };
 
     function stopTimer() {
@@ -189,12 +215,19 @@
     const B64_PADDING = /(=+)$/;
 
     function storyOp(step, position) {
-        const info = PLAIN[step.name] || { icon: "\u2699\uFE0F", title: step.name, text: "Transforms the text it receives." };
+        const info = PLAIN[step.name] || { icon: EXPLAIN_ICONS.generic, title: step.name, text: "Transforms the text it receives." };
         const card = el("div", "story-card");
+
+        const iconSpan = el("span", "story-icon");
+        if (typeof info.icon === "string" && info.icon.startsWith("<svg")) {
+            iconSpan.innerHTML = info.icon;
+        } else {
+            iconSpan.textContent = info.icon;
+        }
 
         card.appendChild(put(el("div", "story-head"),
             el("span", "story-num", String(position + 1)),
-            el("span", "story-icon", info.icon),
+            iconSpan,
             el("b", null, info.title)));
         card.appendChild(el("p", "story-text", info.text));
 
@@ -214,7 +247,16 @@
     }
 
     function pipeChip(icon, text) {
-        return put(el("span", "pipe-chip"), el("span", "pipe-icon", icon), document.createTextNode(text));
+        const chip = el("span", "pipe-chip");
+        const iconSpan = el("span", "pipe-icon");
+        if (typeof icon === "string" && icon.startsWith("<svg")) {
+            iconSpan.innerHTML = icon;
+        } else {
+            iconSpan.textContent = icon;
+        }
+        chip.appendChild(iconSpan);
+        chip.appendChild(document.createTextNode(text));
+        return chip;
     }
 
     function renderStory() {
@@ -226,19 +268,25 @@
             : "Your recipe ran " + allSteps.length + " operations, one after another. The result of each one is handed to the next."));
 
         const pipe = el("div", "pipeline");
-        pipe.appendChild(pipeChip("\u270D\uFE0F", "Your text"));
+        pipe.appendChild(pipeChip(EXPLAIN_ICONS.text, "Your text"));
         allSteps.forEach(function (step) {
-            const info = PLAIN[step.name] || { icon: "\u2699\uFE0F", title: step.name };
+            const info = PLAIN[step.name] || { icon: EXPLAIN_ICONS.generic, title: step.name };
             pipe.appendChild(el("span", "pipe-arrow", "\u2192"));
             pipe.appendChild(pipeChip(info.icon, info.title));
         });
         pipe.appendChild(el("span", "pipe-arrow", "\u2192"));
-        pipe.appendChild(pipeChip("\uD83C\uDFAF", "Result"));
+        pipe.appendChild(pipeChip(EXPLAIN_ICONS.result, "Result"));
         box.appendChild(pipe);
+
+        const startLabel = el("div", "story-start-label");
+        const startIcon = el("span", "pipe-icon");
+        startIcon.innerHTML = EXPLAIN_ICONS.text;
+        startLabel.appendChild(startIcon);
+        startLabel.appendChild(document.createTextNode("  You started with"));
 
         const flow = el("div", "story-flow");
         flow.appendChild(put(el("div", "story-start"),
-            el("div", "story-start-label", "\u270D\uFE0F  You started with"),
+            startLabel,
             storyBox("Your text", allSteps[0].input, null)));
         allSteps.forEach(function (step, position) {
             flow.appendChild(el("div", "story-arrow", "\u2193"));
@@ -264,8 +312,18 @@
         lesson.hidden = false;
         const step = tabs[tabIndex].step;
         const info = PLAIN[step.name];
-        document.getElementById("lesson-title").textContent =
-            (info ? info.icon + "  " : "") + "Inside " + (info ? info.title : step.name);
+        const titleEl = document.getElementById("lesson-title");
+        titleEl.replaceChildren();
+        if (info && info.icon) {
+            const iconWrap = el("span", "lesson-title-icon");
+            if (typeof info.icon === "string" && info.icon.startsWith("<svg")) {
+                iconWrap.innerHTML = info.icon;
+            } else {
+                iconWrap.textContent = info.icon;
+            }
+            titleEl.appendChild(iconWrap);
+        }
+        titleEl.appendChild(document.createTextNode("Inside " + (info ? info.title : step.name)));
         syncModeButton();
         renderCard();
         lesson.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -293,7 +351,7 @@
         // Stepper dots: a star for the warm-up, then 1, 2, 3...
         const stepper = el("div", "stepper");
         cards.forEach(function (c, i) {
-            stepper.appendChild(makeButton(c.data.intro ? "\u2605" : String(stepNumberAt(i)), c.title,
+            stepper.appendChild(makeButton(c.data.intro ? "•" : String(stepNumberAt(i)), c.title,
                 function () { goTo(i); },
                 "dot" + (i === cardIndex ? " active" : (i < cardIndex ? " done" : ""))));
         });
@@ -407,16 +465,18 @@
 
         // The five properties
         const icons = {
-            "Deterministic": "\uD83D\uDD01",
-            "Fixed size": "\uD83D\uDCCF",
-            "One-way": "\uD83D\uDEAA",
-            "Avalanche effect": "\uD83C\uDF0A",
-            "Collision resistant": "\uD83D\uDEE1\uFE0F"
+            "Deterministic": EXPLAIN_ICONS.deterministic,
+            "Fixed size": EXPLAIN_ICONS.fixedSize,
+            "One-way": EXPLAIN_ICONS.oneWay,
+            "Avalanche effect": EXPLAIN_ICONS.avalanche,
+            "Collision resistant": EXPLAIN_ICONS.collision
         };
         const props = el("div", "prop-grid");
         d.properties.forEach(function (p) {
+            const pIcon = el("div", "prop-icon");
+            pIcon.innerHTML = icons[p.name] || EXPLAIN_ICONS.propGeneric;
             put(props, put(el("div", "prop-card"),
-                el("div", "prop-icon", icons[p.name] || "\u2728"),
+                pIcon,
                 el("b", null, p.name),
                 el("p", null, p.text)));
         });
@@ -1117,15 +1177,97 @@
     }
 
     /** A strip of little squares: groupSize bits per colour group; bits past `realBits` are dimmed padding. */
-    function bitStrip(bits, groupSize, realBits, colourOf) {
-        const strip = el("div", "strip");
-        bits.split("").forEach(function (bit, i) {
-            let cls = "bit " + (bit === "1" ? "on" : "off") + " c" + colourOf(Math.floor(i / groupSize));
-            if (i % groupSize === groupSize - 1 && i < bits.length - 1) cls += " gap";
-            if (i >= realBits) cls += " pad";
-            strip.appendChild(el("span", cls));
-        });
-        return strip;
+    function byteBoxes(g, bits24, encode) {
+        const row = el("div", "b64-bit-boxes");
+        const realBytesCount = g.bytes.length;
+
+        for (let k = 0; k < 3; k++) {
+            if (k < realBytesCount) {
+                const b = g.bytes[k];
+                const box = el("div", "b64-bit-box c" + k);
+                const head = el("div", "b64-bit-box-head");
+                head.appendChild(el("span", "b64-bit-box-char", "'" + b.label + "'"));
+                head.appendChild(el("span", "b64-bit-box-hex", "0x" + b.hex));
+                head.appendChild(el("span", "b64-bit-box-badge", "8 bits"));
+                box.appendChild(head);
+
+                const cells = el("div", "b64-bit-cells");
+                const bBits = b.bits || bits24.substring(k * 8, k * 8 + 8);
+                bBits.split("").forEach(function (bit) {
+                    cells.appendChild(el("span", "b64-bit-cell " + (bit === "1" ? "on src-c" + k : "off"), bit));
+                });
+                box.appendChild(cells);
+                row.appendChild(box);
+            } else {
+                const box = el("div", "b64-bit-box ghost");
+                const head = el("div", "b64-bit-box-head");
+                head.appendChild(el("span", "b64-bit-box-char", "\u2205 empty"));
+                head.appendChild(el("span", "b64-bit-box-badge", "padding"));
+                box.appendChild(head);
+
+                const cells = el("div", "b64-bit-cells");
+                for (let bi = 0; bi < 8; bi++) {
+                    cells.appendChild(el("span", "b64-bit-cell pad", "0"));
+                }
+                box.appendChild(cells);
+                row.appendChild(box);
+            }
+        }
+        return row;
+    }
+
+    function pieceBoxes(g, bits24, realBits, encode) {
+        const row = el("div", "b64-bit-boxes");
+
+        for (let p = 0; p < 4; p++) {
+            const pieceBitsStr = g.pieces[p];
+            const isPad = (g.indexes[p] < 0) || (p * 6 >= realBits);
+            const sym = g.symbols[p];
+            const num = g.indexes[p];
+
+            if (!isPad) {
+                const box = el("div", "b64-bit-box c" + p);
+                const head = el("div", "b64-bit-box-head");
+                const titleText = encode 
+                    ? ("Piece " + (p + 1) + " \u2192 '" + sym + "'")
+                    : ("'" + sym + "' = " + num);
+                head.appendChild(el("span", "b64-bit-box-char", titleText));
+                head.appendChild(el("span", "b64-bit-box-badge", "6 bits"));
+                box.appendChild(head);
+
+                const cells = el("div", "b64-bit-cells");
+                pieceBitsStr.split("").forEach(function (bit, bitIdx) {
+                    const overallBitIndex = p * 6 + bitIdx;
+                    const srcByte = Math.floor(overallBitIndex / 8);
+                    const isBitPad = overallBitIndex >= realBits;
+                    let cls = "b64-bit-cell";
+                    if (isBitPad) {
+                        cls += " pad";
+                    } else if (bit === "1") {
+                        cls += " on src-c" + srcByte;
+                    } else {
+                        cls += " off";
+                    }
+                    cells.appendChild(el("span", cls, bit));
+                });
+                box.appendChild(cells);
+                row.appendChild(box);
+            } else {
+                const box = el("div", "b64-bit-box ghost");
+                const head = el("div", "b64-bit-box-head");
+                head.appendChild(el("span", "b64-bit-box-char", "= (padding)"));
+                head.appendChild(el("span", "b64-bit-box-badge", "padding"));
+                box.appendChild(head);
+
+                const cells = el("div", "b64-bit-cells");
+                for (let bi = 0; bi < 6; bi++) {
+                    cells.appendChild(el("span", "b64-bit-cell pad", "0"));
+                }
+                box.appendChild(cells);
+                row.appendChild(box);
+            }
+        }
+        return row;
     }
 
     function rowWith(label, content) {
@@ -1161,10 +1303,10 @@
                 return tiles(items);
             };
             const byteBits = function () {
-                return bitStrip(bits24, 8, realBits, function (n) { return n; });
+                return byteBoxes(g, bits24, encode);
             };
             const pieceBits = function () {
-                return bitStrip(bits24, 6, realBits, function (n) { return n; });
+                return pieceBoxes(g, bits24, realBits, encode);
             };
             const numberTiles = function () {
                 return tiles(g.indexes.map(function (n, i) {
